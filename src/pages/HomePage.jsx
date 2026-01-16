@@ -1,16 +1,36 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, Header, Main, BottomBar, Button, Card, CardTitle, CardDescription } from '../components/ui';
 import { Plus, Receipt, Clock } from 'lucide-react';
 import { useSplit } from '../context/SplitContext';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 export default function HomePage() {
     const navigate = useNavigate();
     const { createNewSplit } = useSplit();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleStart = async () => {
-        const splitId = await createNewSplit("New Lunch");
-        if (splitId) {
-            navigate('/setup');
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            if (!isSupabaseConfigured) {
+                throw new Error('Database not configured. Please check environment variables.');
+            }
+
+            const splitId = await createNewSplit("New Lunch");
+            if (splitId) {
+                navigate('/setup');
+            } else {
+                throw new Error('Failed to create split. Please try again.');
+            }
+        } catch (err) {
+            console.error('handleStart error:', err);
+            setError(err.message || 'Something went wrong. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -37,17 +57,25 @@ export default function HomePage() {
                     </p>
                 </div>
 
+                {/* Error Message */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+                        {error}
+                    </div>
+                )}
+
                 {/* Quick Actions */}
                 <Card className="!p-0 overflow-hidden">
                     <button
                         onClick={handleStart}
-                        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                        disabled={isLoading}
+                        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                         <div className="w-12 h-12 bg-brand-green/10 rounded-xl flex items-center justify-center">
                             <Plus className="w-6 h-6 text-brand-green" />
                         </div>
                         <div className="text-left">
-                            <CardTitle>Start New Split</CardTitle>
+                            <CardTitle>{isLoading ? 'Creating...' : 'Start New Split'}</CardTitle>
                             <CardDescription>Scan or enter a receipt</CardDescription>
                         </div>
                     </button>
@@ -85,8 +113,8 @@ export default function HomePage() {
             </Main>
 
             <BottomBar>
-                <Button onClick={handleStart} leftIcon={<Plus className="w-5 h-5" />}>
-                    New Split
+                <Button onClick={handleStart} leftIcon={<Plus className="w-5 h-5" />} disabled={isLoading}>
+                    {isLoading ? 'Creating...' : 'New Split'}
                 </Button>
             </BottomBar>
         </Layout>

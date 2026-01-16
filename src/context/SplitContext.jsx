@@ -133,15 +133,18 @@ export function SplitProvider({ children }) {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw new Error(error.message || 'Database error occurred');
+            }
 
             setCurrentSplitId(data.id);
             setMembers([]);
             setItems([]);
             return data.id;
         } catch (e) {
-            console.error(e);
-            return null;
+            console.error('createNewSplit error:', e);
+            throw e; // Re-throw so caller can handle
         } finally {
             setLoading(false);
         }
