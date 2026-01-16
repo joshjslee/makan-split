@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* Custom Theme Configuration */
+@theme {
+  --color-brand-green: #00C853;
+  --color-brand-green-dark: #00A846;
+  --color-brand-blue: #005EB8;
+  --color-brand-blue-light: #E3F2FD;
+
+  --color-surface: #F5F5F5;
+  --color-surface-card: #FFFFFF;
+  --color-surface-muted: #9E9E9E;
+
+  --color-status-paid: #4CAF50;
+  --color-status-pending: #FF9800;
+  --color-status-error: #F44336;
+
+  --font-family-sans: 'Inter', 'Roboto', system-ui, sans-serif;
+
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-button: 0 4px 12px rgba(0, 200, 83, 0.3);
+}
+
+/* Base Styles */
+@layer base {
+  html {
+    font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: #1f2937;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+/* Component Classes */
+@layer components {
+  .btn-primary {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background-color: var(--color-brand-green);
+    color: white;
+    font-weight: 600;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-button);
+    transition: all 150ms;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-brand-green-dark);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background-color: white;
+    color: var(--color-brand-green);
+    font-weight: 600;
+    border-radius: var(--radius-2xl);
+    border: 2px solid var(--color-brand-green);
+    transition: all 150ms;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-brand-blue-light);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-outline {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    color: var(--color-brand-blue);
+    font-weight: 500;
+    border-radius: 9999px;
+    border: 1px solid var(--color-brand-blue);
+    transition: all 150ms;
+  }
+
+  .btn-outline:hover {
+    background-color: var(--color-brand-blue-light);
+  }
+
+  .btn-outline:active {
+    transform: scale(0.98);
+  }
+
+  .card {
+    background-color: var(--color-surface-card);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
+    padding: 1rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .chip-member {
+    background-color: var(--color-brand-blue-light);
+    color: var(--color-brand-blue);
+  }
+
+  .chip-paid {
+    background-color: #dcfce7;
+    color: var(--color-status-paid);
+  }
+
+  .chip-pending {
+    background-color: #ffedd5;
+    color: var(--color-status-pending);
+  }
+}
+
+/* Mobile Safe Area */
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
