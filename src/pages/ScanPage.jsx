@@ -5,41 +5,17 @@ import { Camera, ArrowLeft } from 'lucide-react';
 import { parseReceiptImage } from '../services/gemini';
 import { useSplit } from '../context/SplitContext';
 
-// Auto-fallback component with countdown
-function ErrorWithAutoFallback({ ocrError, onRetry, onFallback }) {
-    const [countdown, setCountdown] = useState(5);
-    const [isFallbackLoading, setIsFallbackLoading] = useState(false);
-    const fallbackTriggeredRef = useRef(false);
+// Error screen with Direct Input fallback option (no auto-redirect)
+function ScanErrorScreen({ ocrError, onRetry, onDirectInput }) {
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        // Prevent multiple triggers
-        if (fallbackTriggeredRef.current || isFallbackLoading) {
-            return;
-        }
-
-        if (countdown <= 0) {
-            fallbackTriggeredRef.current = true;
-            handleFallback();
-            return;
-        }
-
-        const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-        return () => clearTimeout(timer);
-    }, [countdown, isFallbackLoading]);
-
-    const handleFallback = async () => {
-        if (isFallbackLoading || fallbackTriggeredRef.current) {
-            fallbackTriggeredRef.current = true;
-            if (isFallbackLoading) return; // Already loading
-        }
-        fallbackTriggeredRef.current = true;
-        setIsFallbackLoading(true);
+    const handleDirectInput = async () => {
+        setIsLoading(true);
         try {
-            await onFallback();
+            await onDirectInput();
         } catch (e) {
-            console.error('Fallback failed:', e);
-            setIsFallbackLoading(false);
-            fallbackTriggeredRef.current = false;
+            console.error('Direct input failed:', e);
+            setIsLoading(false);
         }
     };
 
@@ -47,33 +23,24 @@ function ErrorWithAutoFallback({ ocrError, onRetry, onFallback }) {
         <div className="text-center text-white px-6">
             <div className="text-5xl mb-4">😕</div>
             <h2 className="text-xl font-bold mb-2">Scan Failed</h2>
-            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-4">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-6">
                 <p className="text-sm text-red-200 leading-relaxed font-mono">{ocrError}</p>
-            </div>
-
-            {/* Auto-fallback notice */}
-            <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-xl p-3 mb-6">
-                <p className="text-sm text-yellow-200">
-                    {isFallbackLoading
-                        ? "Loading default items..."
-                        : `Auto-switching to Direct Input in ${countdown}s...`}
-                </p>
             </div>
 
             <div className="flex flex-col gap-3">
                 <button
                     onClick={onRetry}
-                    disabled={isFallbackLoading}
+                    disabled={isLoading}
                     className="bg-white text-black px-8 py-3 rounded-full font-bold disabled:opacity-50"
                 >
                     Try Again
                 </button>
                 <button
-                    onClick={handleFallback}
-                    disabled={isFallbackLoading}
+                    onClick={handleDirectInput}
+                    disabled={isLoading}
                     className="bg-brand-green text-white px-8 py-3 rounded-full font-bold disabled:opacity-50"
                 >
-                    {isFallbackLoading ? "Loading..." : "Use Direct Input Now"}
+                    {isLoading ? "Loading..." : "Use Direct Input"}
                 </button>
             </div>
         </div>
@@ -293,15 +260,15 @@ export default function ScanPage() {
                     </div>
                 )}
 
-                {/* State: Error with Auto-Fallback */}
+                {/* State: Error with Direct Input option */}
                 {scanState === 'error' && (
-                    <ErrorWithAutoFallback
+                    <ScanErrorScreen
                         ocrError={ocrError}
                         onRetry={() => {
                             setOcrError(null);
                             setScanState('camera');
                         }}
-                        onFallback={async () => {
+                        onDirectInput={async () => {
                             const defaultItems = [
                                 { name: 'Nasi Lemak', price: 15.00, quantity: 1 },
                                 { name: 'Teh Tarik', price: 5.00, quantity: 1 },
