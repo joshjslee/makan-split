@@ -188,6 +188,7 @@ export function SplitProvider({ children }) {
         }
     }, [currentSplitId, members.length]);
 
+
     // ACTION: Add Member with Details (Alias/Updated)
     const addMemberWithDetails = useCallback(async (details) => {
         if (!currentSplitId) return;
@@ -197,13 +198,12 @@ export function SplitProvider({ children }) {
         const phone = details.phone || '';
 
         try {
+            // Note: avatar and phone are stored locally only, not in DB (no columns in participants table)
             const { data, error } = await supabase
                 .from('participants')
                 .insert({
                     split_id: currentSplitId,
-                    name,
-                    phone,
-                    avatar
+                    name
                 })
                 .select()
                 .single();
@@ -213,8 +213,8 @@ export function SplitProvider({ children }) {
             setMembers(prev => [...prev, {
                 id: data.id,
                 name: data.name,
-                avatar: data.avatar || '😊',
-                phone: data.phone,
+                avatar: avatar, // Use local avatar value
+                phone: phone,   // Use local phone value
                 isSettled: data.is_settled
             }]);
             return data.id;
@@ -231,16 +231,19 @@ export function SplitProvider({ children }) {
         setMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...updates } : m));
 
         try {
-            const { error } = await supabase
-                .from('participants')
-                .update({
-                    name: updates.name,
-                    phone: updates.phone,
-                    avatar: updates.avatar
-                })
-                .eq('id', memberId);
+            // Note: avatar and phone are stored locally only, not in DB
+            const dbUpdates = {};
+            if (updates.name !== undefined) dbUpdates.name = updates.name;
+            // phone is not in DB schema, so we don't update it there
 
-            if (error) throw error;
+            if (Object.keys(dbUpdates).length > 0) {
+                const { error } = await supabase
+                    .from('participants')
+                    .update(dbUpdates)
+                    .eq('id', memberId);
+
+                if (error) throw error;
+            }
         } catch (e) {
             console.error(e);
         }

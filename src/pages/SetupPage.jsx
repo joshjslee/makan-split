@@ -9,7 +9,7 @@ const AVATAR_EMOJIS = ['😊', '😎', '🤩', '🥳', '😄', '🤗', '😋', '
 
 export default function SetupPage() {
     const navigate = useNavigate();
-    const { loadMockReceipt, resetSession, addMemberWithDetails, loading } = useSplit();
+    const { loadMockReceipt, resetSession, addMemberWithDetails, createNewSplit, bulkAddItems, loading } = useSplit();
     const [memberCount, setMemberCount] = useState(3);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false); // Local loading state for button
@@ -90,6 +90,9 @@ export default function SetupPage() {
                 return;
             }
 
+            // First create a new split session to get splitId
+            await createNewSplit("New Receipt");
+
             // Add all members sequentially to ensure they are in DB
             for (const detail of validatedMembers) {
                 await addMemberWithDetails(detail);
@@ -98,6 +101,12 @@ export default function SetupPage() {
             if (mode === 'scan') {
                 navigate('/scan');
             } else {
+                // Direct Input mode: Add default items
+                const defaultItems = [
+                    { name: 'Nasi Lemak', price: 15.00, quantity: 1 },
+                    { name: 'Teh Tarik', price: 5.00, quantity: 1 },
+                ];
+                await bulkAddItems(defaultItems);
                 navigate('/assign');
             }
         } catch (e) {

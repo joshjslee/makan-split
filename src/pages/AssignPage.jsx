@@ -18,6 +18,7 @@ export default function AssignPage() {
         taxSettings,
         setTaxSettings,
         bulkAddItems,
+        addItem,
     } = useSplit();
 
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -25,6 +26,11 @@ export default function AssignPage() {
     const [showExitDialog, setShowExitDialog] = useState(false);
     const [showTaxModal, setShowTaxModal] = useState(false);
     const [localTaxSettings, setLocalTaxSettings] = useState(taxSettings || { serviceCharge: 10, serviceTax: 6 });
+
+    // Add Item Modal State
+    const [showAddItemModal, setShowAddItemModal] = useState(false);
+    const [newItemName, setNewItemName] = useState('');
+    const [newItemPrice, setNewItemPrice] = useState('');
 
     // Member Editing State
     const [editingMemberId, setEditingMemberId] = useState(null);
@@ -130,6 +136,35 @@ export default function AssignPage() {
                         {formatPrice(subtotalBreakdown.base)} + {subtotalBreakdown.svc.toFixed(2)} SVC + {subtotalBreakdown.tax.toFixed(2)} Tax
                     </div>
                 </div>
+
+                {/* Empty State - Show when no items */}
+                {items.length === 0 && (
+                    <Card className="text-center py-8">
+                        <div className="text-4xl mb-3">🧾</div>
+                        <h3 className="font-semibold text-gray-900 mb-1">No items yet</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Add receipt items manually or go back to scan a receipt
+                        </p>
+                        <Button
+                            onClick={() => setShowAddItemModal(true)}
+                            leftIcon={<Plus className="w-5 h-5" />}
+                        >
+                            Add Item
+                        </Button>
+                    </Card>
+                )}
+
+                {/* Add Item Button - Always visible */}
+                {items.length > 0 && (
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowAddItemModal(true)}
+                        leftIcon={<Plus className="w-5 h-5" />}
+                        className="w-full"
+                    >
+                        Add Another Item
+                    </Button>
+                )}
 
                 {/* Item List */}
                 {items.map((item) => {
@@ -371,6 +406,67 @@ export default function AssignPage() {
                         }}
                     >
                         Save Settings
+                    </Button>
+                </div>
+            </Modal>
+
+            {/* Add Item Modal */}
+            <Modal
+                isOpen={showAddItemModal}
+                onClose={() => {
+                    setShowAddItemModal(false);
+                    setNewItemName('');
+                    setNewItemPrice('');
+                }}
+                title="Add New Item"
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Item Name
+                        </label>
+                        <input
+                            type="text"
+                            value={newItemName}
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            placeholder="e.g., Nasi Lemak"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent"
+                            autoFocus
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Price (RM)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={newItemPrice}
+                            onChange={(e) => setNewItemPrice(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent"
+                        />
+                    </div>
+
+                    <Button
+                        onClick={async () => {
+                            if (newItemName.trim() && parseFloat(newItemPrice) > 0) {
+                                await addItem({
+                                    name: newItemName.trim(),
+                                    price: parseFloat(newItemPrice),
+                                    quantity: 1
+                                });
+                                setShowAddItemModal(false);
+                                setNewItemName('');
+                                setNewItemPrice('');
+                            } else {
+                                alert('Please enter a valid item name and price.');
+                            }
+                        }}
+                        disabled={!newItemName.trim() || !newItemPrice}
+                    >
+                        Add Item
                     </Button>
                 </div>
             </Modal>
